@@ -13,8 +13,8 @@ function log (message) {
   console.log(util.format('%s: %s', (new Date()).toUTCString(), message))
 }
 
-daemon.on('start', () => {
-  log('TurtleCoind has started...')
+daemon.on('start', (args) => {
+  log(util.format('TurtleCoind has started... %s', args))
   log('TurtleCoind is attempting to synchronize with the network...')
 })
 
@@ -23,7 +23,7 @@ daemon.on('synced', () => {
 })
 
 daemon.on('ready', (info) => {
-  log(util.format('TurtleCoind is waiting for connections at %s @ %s', info.height, info.difficulty))
+  log(util.format('TurtleCoind is waiting for connections at %s @ %s - %s H/s', info.height, info.difficulty, info.globalHashRate))
 })
 
 daemon.on('down', () => {

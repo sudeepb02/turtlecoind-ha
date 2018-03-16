@@ -10,6 +10,7 @@ const daemonResponses = {
   started: 'Always exit TurtleCoind and Simplewallet with',
   help: 'Show this help'
 }
+const blockTargetTime = 30
 
 const TurtleCoind = function (opts) {
   opts = opts || {}
@@ -40,7 +41,8 @@ const TurtleCoind = function (opts) {
 inherits(TurtleCoind, EventEmitter)
 
 TurtleCoind.prototype.start = function () {
-  this._init()
+  this.sycned = false
+
   var args = this._buildargs()
   this.child = pty.spawn(this.path, args, {
     name: 'xterm-color',
@@ -59,46 +61,67 @@ TurtleCoind.prototype.start = function () {
   this.child.on('close', (exitcode) => {
     this.emit('stopped', exitcode)
   })
-  this.emit('start')
+
+  // Attach to our own events so that we know when we can start our checking processes
+  this.on('data', this._checkChildStdio)
+  this.on('synced', this._checkServices)
+
+  this.emit('start', args.join(' '))
 }
 
 TurtleCoind.prototype.stop = function () {
+  // If we are currently running our checks, it's a good idea to stop them before we go kill the child process
   if (this.checkDaemon) clearInterval(this.checkDaemon)
-  if (this.child) this.child.kill()
+  this.synced = false
+
+  // We detach ourselves from our own event emitters here so that we don't accidentally stack on top of ourselves when we start back up
+  this.removeListener('synced', this._checkServices)
+  this.removeListener('data', this._checkChildStdio)
+
+  // Let's try to exit cleanly and if not, kill the process
+  if (this.child) this.write('exit')
+  setTimeout(() => {
+    if (this.child) this.child.kill()
+  }, (this.timeout * 2))
 }
 
 TurtleCoind.prototype.write = function (data) {
   this._write(util.format('%s\r', data))
 }
 
-TurtleCoind.prototype._init = function () {
-  this.sycned = false
-  this.on('data', (data) => {
-    if (data.indexOf(daemonResponses.synced) !== -1) {
-      this.emit('synced')
-    } else if (data.indexOf(daemonResponses.started) !== -1) {
-      this.emit('started')
-    } else if (data.indexOf(daemonResponses.help) !== -1) {
-      this.help = true
-    }
-  })
+TurtleCoind.prototype._checkChildStdio = function (data) {
+  if (data.indexOf(daemonResponses.synced) !== -1) {
+    this.emit('synced')
+  } else if (data.indexOf(daemonResponses.started) !== -1) {
+    this.emit('started')
+  } else if (data.indexOf(daemonResponses.help) !== -1) {
+    this.help = true
+  }
+}
 
-  this.on('synced', () => {
-    if (!this.synced) {
-      this.synced = true
-      this.checkDaemon = setInterval(() => {
-        Promise.all([
-          this._checkRpc(),
-          this._checkDaemon()
-        ]).then((results) => {
-          this.emit('ready', results[0][0])
-        }).catch((err) => {
-          this.emit('error', err)
-          this.emit('down')
-        })
-      }, this.pollingInterval)
-    }
-  })
+TurtleCoind.prototype._checkServices = function () {
+  if (!this.synced) {
+    this.synced = true
+    this.checkDaemon = setInterval(() => {
+      Promise.all([
+        this._checkRpc(),
+        this._checkDaemon()
+      ]).then((results) => {
+        var info = results[0][0]
+        info.globalHashRate = Math.round(info.difficulty / blockTargetTime)
+        this.up = true
+        this.emit('ready', info)
+      }).catch((err) => {
+        this.up = false
+        this.emit('error', err)
+        if (!this.trigger) {
+          this.trigger = setTimeout(() => {
+            if (!this.up) this.emit('down')
+          }, (this.timeout * 2))
+        }
+      })
+    }, this.pollingInterval)
+  }
 }
 
 TurtleCoind.prototype._checkRpc = function () {
