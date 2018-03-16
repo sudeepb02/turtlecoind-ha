@@ -7,6 +7,7 @@ const EventEmitter = require('events').EventEmitter
 const request = require('request-promise')
 const daemonResponses = {
   synced: 'SUCCESSFULLY SYNCHRONIZED WITH THE TURTLECOIN NETWORK',
+  altsynced: 'SYNCHRONIZED OK',
   started: 'Always exit TurtleCoind and Simplewallet with',
   help: 'Show this help'
 }
@@ -91,6 +92,8 @@ TurtleCoind.prototype.write = function (data) {
 
 TurtleCoind.prototype._checkChildStdio = function (data) {
   if (data.indexOf(daemonResponses.synced) !== -1) {
+    this.emit('synced')
+  } else if (data.indexOf(daemonResponses.altsynced) !== -1) {
     this.emit('synced')
   } else if (data.indexOf(daemonResponses.started) !== -1) {
     this.emit('started')
