@@ -36,7 +36,7 @@ node service.js
 Fri, 16 Mar 2018 01:13:12 GMT: TurtleCoind has started...
 Fri, 16 Mar 2018 01:13:12 GMT: TurtleCoind is attempting to synchronize with the network...
 Fri, 16 Mar 2018 01:13:33 GMT: TurtleCoind is synchronized with the network...
-Fri, 16 Mar 2018 01:13:44 GMT: TurtleCoind is waiting for connections at 268422 @ 261348121
+Fri, 16 Mar 2018 01:13:44 GMT: TurtleCoind is waiting for connections at 268422 @ 261348121 - 7111111 H/s
 ```
 
 Keep it Running
@@ -138,10 +138,10 @@ daemon.on('data', (data) => {
 Event - *start*
 ===
 
-This event is emitted when the daemon starts.
+This event is emitted when the daemon starts. The callback contains the command line arguments supplied to TurtleCoind.
 
 ```javascript
-daemon.on('start', () => {
+daemon.on('start', (args) => {
   // do something
 })
 ```
@@ -160,7 +160,7 @@ daemon.on('synced', () => {
 Event - *ready*
 ===
 
-This event is emitted when the daemon is synchronized with the TurtleCoin network and is passing all the checks we have for it. It returns the equivalent of a */getinfo* call to the RPC server.
+This event is emitted when the daemon is synchronized with the TurtleCoin network and is passing all the checks we have for it. It returns the equivalent of a */getinfo* call to the RPC server with a few minor additions.
 
 ```javascript
 daemon.on('ready', (info) => {
@@ -184,6 +184,7 @@ Sample info
   "tx_pool_size": 0,
   "white_peerlist_size": 214,
   "cached": false,
+  "globalHashRate": 7123123
 }
 ```
 
