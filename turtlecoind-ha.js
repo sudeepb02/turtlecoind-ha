@@ -55,7 +55,7 @@ TurtleCoind.prototype.start = function () {
   })
 
   this.child.on('error', (error) => {
-    this.emit('error', error)
+    this.emit('error', util.format("Error in child process...: %s', error))
   })
   this.child.on('data', (data) => {
     this.emit('data', data.trim())
