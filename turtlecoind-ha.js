@@ -113,10 +113,9 @@ TurtleCoind.prototype._checkServices = function () {
       ]).then((results) => {
         var info = results[0][0]
         info.globalHashRate = Math.round(info.difficulty / blockTargetTime)
-        this.up = true
+        if (this.trigger) clearTimeout(this.trigger)
         this.emit('ready', info)
       }).catch((err) => {
-        this.up = false
         this.emit('error', err)
         if (!this.trigger) {
           this.trigger = setTimeout(() => {
