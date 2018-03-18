@@ -38,6 +38,7 @@ const TurtleCoind = function (opts) {
   this.dbMaxOpenFiles = opts.dbMaxOpenFiles || false
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
+  this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
 }
 inherits(TurtleCoind, EventEmitter)
 
@@ -140,7 +141,7 @@ TurtleCoind.prototype._checkRpc = function () {
         return reject(new Error('Daemon is returning inconsistent results'))
       }
     }).catch((err) => {
-      return reject(err)
+      return reject(util.format('Daemon is not passing checks...: %s', err))
     })
   })
 }
@@ -179,7 +180,7 @@ TurtleCoind.prototype._getInfo = function () {
     this._queryRpc('getinfo').then((data) => {
       return resolve(data)
     }).catch((err) => {
-      return reject(err)
+      return reject(util.format('Could not get /getInfo: %s', err))
     })
   })
 }
@@ -189,7 +190,7 @@ TurtleCoind.prototype._getHeight = function () {
     this._queryRpc('getheight').then((data) => {
       return resolve(data)
     }).catch((err) => {
-      return reject(err)
+      return reject(util.format('Could not get /getheight: %s', err))
     })
   })
 }
@@ -199,7 +200,7 @@ TurtleCoind.prototype._getTransactions = function () {
     this._queryRpc('gettransactions').then((data) => {
       return resolve(data)
     }).catch((err) => {
-      return reject(err)
+      return reject(util.format('Could not get /gettransactions: %s', err))
     })
   })
 }
