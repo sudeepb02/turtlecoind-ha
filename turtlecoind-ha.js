@@ -126,7 +126,7 @@ TurtleCoind.prototype._checkServices = function () {
         if (!this.trigger) {
           this.trigger = setTimeout(() => {
             this.emit('down')
-          }, (this.timeout * 2))
+          }, (this.pollingInterval * 2))
         }
       })
     }, this.pollingInterval)
