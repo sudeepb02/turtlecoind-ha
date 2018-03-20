@@ -73,7 +73,10 @@ TurtleCoind.prototype.start = function () {
 
 TurtleCoind.prototype.stop = function () {
   // If we are currently running our checks, it's a good idea to stop them before we go kill the child process
-  if (this.checkDaemon) clearInterval(this.checkDaemon)
+  if (this.checkDaemon) {
+    clearInterval(this.checkDaemon)
+    this.checkDaemon = null
+  }
   this.synced = false
 
   // We detach ourselves from our own event emitters here so that we don't accidentally stack on top of ourselves when we start back up
