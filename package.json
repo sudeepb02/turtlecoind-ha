@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Brandon Lehmann <brandonlehmann@gmail.com>",
-  "license": "ISC",
+  "license": "GPL",
   "dependencies": {
     "node-pty": "^0.7.4",
     "request": "^2.85.0",
