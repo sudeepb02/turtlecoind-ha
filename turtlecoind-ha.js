@@ -45,7 +45,7 @@ inherits(TurtleCoind, EventEmitter)
 
 TurtleCoind.prototype.start = function () {
   if (!fs.existsSync(this.path)) {
-    this.error('error', util.format('%s could not be found'))
+    this.error('error', util.format('%s could not be found', this.path))
     return false
   }
   this.sycned = false
