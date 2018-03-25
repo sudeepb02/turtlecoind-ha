@@ -35,7 +35,7 @@ daemon.on('stopped', () => {
 })
 
 daemon.on('info', (info) => {
-  log(info)  
+  log(info)
 })
 
 daemon.on('error', (err) => {

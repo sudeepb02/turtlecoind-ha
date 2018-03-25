@@ -48,9 +48,9 @@ const TurtleCoind = function (opts) {
 inherits(TurtleCoind, EventEmitter)
 
 TurtleCoind.prototype.start = function () {
-    this.emit('info', 'Attempting to start turtlecoind-ha...')
+  this.emit('info', 'Attempting to start turtlecoind-ha...')
   if (!fs.existsSync(this.path)) {
-      this.emit('error', '************************************************')
+    this.emit('error', '************************************************')
     this.emit('error', util.format('%s could not be found', this.path))
     this.emit('error', 'HALTING THE SERVICE DUE TO ERROR')
     this.emit('error', '************************************************')
@@ -63,12 +63,12 @@ TurtleCoind.prototype.start = function () {
     this.emit('info', 'You will be waiting a while for the service to reported as running correctly without bootstrapping.')
     this.emit('info', '************************************************')
     try {
-     shelljs.mkdir('-p', this.dataDir)
+      shelljs.mkdir('-p', this.dataDir)
     } catch (e) {
-        this.emit('error', util.format('Could not create blockchain directory %s: %s', this.dataDir, e))
-        return false
+      this.emit('error', util.format('Could not create blockchain directory %s: %s', this.dataDir, e))
+      return false
     }
-    }
+  }
   this.sycned = false
 
   var args = this._buildargs()
