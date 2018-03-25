@@ -20,7 +20,7 @@ cp <TurtleCoind> .
 npm i & node service.js
 ```
 
-** It is highly recommended that you bootstrap the blockchain before starting this service; however, if you do not want to do that you'll need to wait a while for the sync to occur.**
+**It is highly recommended that you bootstrap the blockchain before starting this service; however, if you do not want to do that you'll need to wait a while for the sync to occur.**
 
 ## Keep it Running
 
@@ -42,7 +42,6 @@ pm2 save
 
 Practically all TurtleCoind command line arguments are exposed in the construtor method. Simply include them in your list of options to get activate or use them. Default values are defined below.
 
-The only required option is the **path** attribute.
 
 ```javascript
 var daemon = new TurtleCoind({
