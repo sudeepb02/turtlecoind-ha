@@ -24,7 +24,7 @@ const TurtleCoind = function (opts) {
   this.path = opts.path || path.resolve(__dirname, './TurtleCoind')
   this.pollingInterval = opts.pollingInterval || 10000
   this.timeout = opts.timeout || 2000
-  this.dataDir = opts.dataDir || path.resolve(os.homedir(), './.TurtleCoin/DB')
+  this.dataDir = opts.dataDir || path.resolve(os.homedir(), './.TurtleCoin')
   this.testnet = opts.testnet || false
   this.enableCors = opts.enableCors || false
   this.enableBlockExplorer = opts.enableBlockExplorer || false
@@ -44,6 +44,13 @@ const TurtleCoind = function (opts) {
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
+  
+  // if we find the ~ HOME shortcut in the paths, we need to replace those manually
+  this.path = this.path.replace('~', os.homedir())
+  this.dataDir = this.dataDir.replace('~', os.homedir())
+  // for sanity sake we always resolve our paths
+  this.path = path.resolve(this.path)
+  this.dataDir = path.resolve(this.dataDir)
 }
 inherits(TurtleCoind, EventEmitter)
 
@@ -94,7 +101,7 @@ TurtleCoind.prototype.start = function () {
   this.on('data', this._checkChildStdio)
   this.on('synced', this._checkServices)
 
-  this.emit('start', util.format('%s %s', this.path, args.join(' ')))
+  this.emit('start', util.format('%s%s', this.path, args.join(' ')))
 }
 
 TurtleCoind.prototype.stop = function () {
