@@ -18,7 +18,7 @@ const TurtleCoind = function (opts) {
   opts = opts || {}
   if (!(this instanceof TurtleCoind)) return new TurtleCoind(opts)
   this.path = opts.path
-  this.pollingInterval = opts.pollingInterval || 2000
+  this.pollingInterval = opts.pollingInterval || 10000
   this.timeout = opts.timeout || 2000
   this.dataDir = opts.dataDir || false
   this.testnet = opts.testnet || false
