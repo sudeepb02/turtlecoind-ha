@@ -4,9 +4,7 @@ const TurtleCoind = require('./')
 const util = require('util')
 
 var daemon = new TurtleCoind({
-  path: '/path/to/turtlecoind',
-  dataDir: '/path/to/blockchain',
-  pollingInterval: 10000
+  // Load additional daemon parameters here
 })
 
 function log (message) {
@@ -34,6 +32,10 @@ daemon.on('down', () => {
 daemon.on('stopped', () => {
   log('TurtleCoind has closed... restarting process...')
   daemon.start()
+})
+
+daemon.on('info', (info) => {
+  log(info)  
 })
 
 daemon.on('error', (err) => {

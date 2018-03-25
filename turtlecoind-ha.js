@@ -6,6 +6,10 @@ const inherits = require('util').inherits
 const EventEmitter = require('events').EventEmitter
 const request = require('request-promise')
 const fs = require('fs')
+const path = require('path')
+const os = require('os')
+const shelljs = require('shelljs')
+
 const daemonResponses = {
   synced: 'SUCCESSFULLY SYNCHRONIZED WITH THE TURTLECOIN NETWORK',
   altsynced: 'SYNCHRONIZED OK',
@@ -17,10 +21,10 @@ const blockTargetTime = 30
 const TurtleCoind = function (opts) {
   opts = opts || {}
   if (!(this instanceof TurtleCoind)) return new TurtleCoind(opts)
-  this.path = opts.path
+  this.path = opts.path || path.resolve(__dirname, './TurtleCoind')
   this.pollingInterval = opts.pollingInterval || 10000
   this.timeout = opts.timeout || 2000
-  this.dataDir = opts.dataDir || false
+  this.dataDir = opts.dataDir || path.resolve(os.homedir(), './.TurtleCoin/DB')
   this.testnet = opts.testnet || false
   this.enableCors = opts.enableCors || false
   this.enableBlockExplorer = opts.enableBlockExplorer || false
@@ -44,10 +48,27 @@ const TurtleCoind = function (opts) {
 inherits(TurtleCoind, EventEmitter)
 
 TurtleCoind.prototype.start = function () {
+    this.emit('info', 'Attempting to start turtlecoind-ha...')
   if (!fs.existsSync(this.path)) {
+      this.emit('error', '************************************************')
     this.emit('error', util.format('%s could not be found', this.path))
+    this.emit('error', 'HALTING THE SERVICE DUE TO ERROR')
+    this.emit('error', '************************************************')
     return false
   }
+  if (!fs.existsSync(this.dataDir)) {
+    this.emit('info', '************************************************')
+    this.emit('info', util.format('%s could not be found', this.dataDir))
+    this.emit('info', 'It is highly recommended that you bootstrap the blockchain before utilizing this service.')
+    this.emit('info', 'You will be waiting a while for the service to reported as running correctly without bootstrapping.')
+    this.emit('info', '************************************************')
+    try {
+     shelljs.mkdir('-p', this.dataDir)
+    } catch (e) {
+        this.emit('error', util.format('Could not create blockchain directory %s: %s', this.dataDir, e))
+        return false
+    }
+    }
   this.sycned = false
 
   var args = this._buildargs()

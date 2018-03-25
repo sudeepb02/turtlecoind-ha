@@ -1,46 +1,30 @@
-TurtleCoind High-Availability Daemon Wrapper
-===
+# TurtleCoind High-Availability Daemon Wrapper
+
+[TOC]
 
 This project is designed to wrap the TurtleCoind daemon on a *nix system and monitor it for hangups, locks, or other events that cause the daemon to stop responding to requests
 
 The sample **service.js** includes how to automatically restart the daemon if it hangs, locks, or otherwise stops responding.
 
-Dependencies
-=
+## Dependencies
+
 * NodeJS v8.x
 * TurtleCoind (https://github.com/turtlecoin/turtlecoin)
 
-Easy Start
-=
+## Easy Start
+
+You *must* copy ```TurtleCoind``` into the ```turtlecoind-ha``` folder for the easy start process to occur.
 
 ```bash
 git clone https://github.com/brandonlehmann/turtlecoind-ha.git
 cd turtlecoind-ha
+cp <TurtleCoind> .
+npm i & node service.js
 ```
 
-Edit the values in **service.js** to match your environment
+** It is highly recommended that you bootstrap the blockchain before starting this service; however, if you do not want to do that you'll need to wait a while for the sync to occur.**
 
-```javascript
-var daemon = new TurtleCoind({
-  path: '/path/to/turtlecoind',
-  dataDir: '/path/to/blockchain',
-  pollingInterval: 10000
-})
-```
-
-Fire up the process...
-
-```bash
-node service.js
-
-Fri, 16 Mar 2018 01:13:12 GMT: TurtleCoind has started...
-Fri, 16 Mar 2018 01:13:12 GMT: TurtleCoind is attempting to synchronize with the network...
-Fri, 16 Mar 2018 01:13:33 GMT: TurtleCoind is synchronized with the network...
-Fri, 16 Mar 2018 01:13:44 GMT: TurtleCoind is waiting for connections at 268422 @ 261348121 - 7111111 H/s
-```
-
-Keep it Running
-==
+## Keep it Running
 
 I'm a big fan of PM2 so if you don't have it installed, the setup is quite simple.
 
@@ -54,11 +38,9 @@ pm2 start service.js --watch --name turtlecoind
 pm2 save
 ```
 
-Documentation
-=
+## Documentation
 
-Initialization
-==
+### Initialization
 
 Practically all TurtleCoind command line arguments are exposed in the construtor method. Simply include them in your list of options to get activate or use them. Default values are defined below.
 
@@ -91,11 +73,9 @@ var daemon = new TurtleCoind({
 })
 ```
 
-Methods
-==
+### Methods
 
-daemon.start()
-===
+#### daemon.start()
 
 Starts up the daemon and starts monitoring the process.
 
@@ -103,8 +83,7 @@ Starts up the daemon and starts monitoring the process.
 daemon.start()
 ```
 
-daemon.stop()
-===
+#### daemon.stop()
 
 Stops the daemon and halts all monitoring processes.
 
@@ -112,8 +91,7 @@ Stops the daemon and halts all monitoring processes.
 daemon.stop()
 ```
 
-daemon.write(text)
-===
+#### daemon.write(text)
 
 Allows you to send a line of text to the daemon console
 
@@ -121,11 +99,9 @@ Allows you to send a line of text to the daemon console
 daemon.write('help')
 ```
 
-Events
-==
+### Events
 
-Event - *data*
-===
+#### Event - *data*
 
 Feeds back the *stdout* of the daemon process. You can use this to monitor the progress of the application or hook and do your own development.
 
@@ -135,8 +111,7 @@ daemon.on('data', (data) => {
 })
 ```
 
-Event - *start*
-===
+#### Event - *start*
 
 This event is emitted when the daemon starts. The callback contains the command line arguments supplied to TurtleCoind.
 
@@ -146,8 +121,7 @@ daemon.on('start', (args) => {
 })
 ```
 
-Event - *synced*
-===
+#### Event - *synced*
 
 This event is emitted when the daemon has synchronized with the TurtleCoin network.
 
@@ -157,8 +131,7 @@ daemon.on('synced', () => {
 })
 ```
 
-Event - *ready*
-===
+#### Event - *ready*
 
 This event is emitted when the daemon is synchronized with the TurtleCoin network and is passing all the checks we have for it. It returns the equivalent of a */getinfo* call to the RPC server with a few minor additions.
 
@@ -188,8 +161,7 @@ Sample info
 }
 ```
 
-Event - *down*
-===
+#### Event - *down*
 
 This event is emitted when the daemon is not responding to RPC requests or local console checks. We believe at that point that the daemon is hung.
 
@@ -199,8 +171,7 @@ daemon.on('down', () => {
 })
 ```
 
-Event - *stopped*
-===
+#### Event - *stopped*
 
 This event is emitted when the daemon is stopped.
 
@@ -210,8 +181,17 @@ daemon.on('stopped', () => {
 })
 ```
 
-Event - *error*
-===
+#### Event - *info*
+
+This event is emitted when the daemon or our service has something to tell you but its not that important.
+
+```javascript
+daemon.on('info', (info) => {
+  // do something
+})
+
+
+#### Event - *error*
 
 This event is emitted when the daemon or our service encounters an error.
 
