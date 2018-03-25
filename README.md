@@ -1,7 +1,5 @@
 # TurtleCoind High-Availability Daemon Wrapper
 
-[TOC]
-
 This project is designed to wrap the TurtleCoind daemon on a *nix system and monitor it for hangups, locks, or other events that cause the daemon to stop responding to requests
 
 The sample **service.js** includes how to automatically restart the daemon if it hangs, locks, or otherwise stops responding.
@@ -48,7 +46,7 @@ The only required option is the **path** attribute.
 
 ```javascript
 var daemon = new TurtleCoind({
-  path: '~/TurtleCoind', // Where can I find TurtleCoind?
+  path: './TurtleCoind', // Where can I find TurtleCoind?
   dataDir: '~/.TurtleCoin', // Where do you store your blockchain?
   pollingInterval: 2000, // How often to check the daemon in milliseconds
   timeout: 2000, // How long to wait for RPC responses in milliseconds
