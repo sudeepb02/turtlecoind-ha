@@ -13,6 +13,7 @@ const shelljs = require('shelljs')
 const daemonResponses = {
   synced: 'SUCCESSFULLY SYNCHRONIZED WITH THE TURTLECOIN NETWORK',
   altsynced: 'SYNCHRONIZED OK',
+  newsycned: 'Successfully synchronized with the TurtleCoin Network',
   started: 'Always exit TurtleCoind and Simplewallet with',
   help: 'Show this help'
 }
@@ -44,7 +45,7 @@ const TurtleCoind = function (opts) {
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
-  
+
   // if we find the ~ HOME shortcut in the paths, we need to replace those manually
   this.path = this.path.replace('~', os.homedir())
   this.dataDir = this.dataDir.replace('~', os.homedir())
@@ -131,6 +132,8 @@ TurtleCoind.prototype._checkChildStdio = function (data) {
   if (data.indexOf(daemonResponses.synced) !== -1) {
     this.emit('synced')
   } else if (data.indexOf(daemonResponses.altsynced) !== -1) {
+    this.emit('synced')
+  } else if (data.indexOf(daemonResponses.newsycned) !== -1) {
     this.emit('synced')
   } else if (data.indexOf(daemonResponses.started) !== -1) {
     this.emit('started')
