@@ -263,7 +263,7 @@ TurtleCoind.prototype._getHeight = function () {
 
 TurtleCoind.prototype._getGlobalHeight = function () {
   return new Promise((resolve, reject) => {
-    require({
+    request({
       uri: globalHeightUrl,
       json: true
     }).then((data) => {
