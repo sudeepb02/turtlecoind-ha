@@ -1,6 +1,6 @@
 # TurtleCoind High-Availability Daemon Wrapper
 
-This project is designed to wrap the TurtleCoind daemon on a *nix system and monitor it for hangups, locks, or other events that cause the daemon to stop responding to requests
+This project is designed to wrap the TurtleCoind daemon on a *nix system and monitor it for hangups, locks, fork, or other events that cause the daemon to stop responding to requests in an accurate manner.
 
 The sample **service.js** includes how to automatically restart the daemon if it hangs, locks, or otherwise stops responding.
 
@@ -49,6 +49,8 @@ var daemon = new TurtleCoind({
   dataDir: '~/.TurtleCoin', // Where do you store your blockchain?
   pollingInterval: 2000, // How often to check the daemon in milliseconds
   timeout: 2000, // How long to wait for RPC responses in milliseconds
+  checkHeight: true, // Check the daemon block height against known trusted nodes
+  maxDeviance: 5, // What is the maximum difference between our block height and the height at the trusted nodes we're willing to accept
   testnet: false, // Use the testnet?
   enableCors: false, // Enable CORS support for the domain in this value
   enableBlockExplorer: false, // Enable the block explorer
@@ -124,6 +126,16 @@ This event is emitted when the daemon has synchronized with the TurtleCoin netwo
 
 ```javascript
 daemon.on('synced', () => {
+  // do something
+})
+```
+
+### Event - *desync*
+
+This event is emitted when the daemon has lost synchronization with the TurtleCoin network
+
+```javascript
+daemon.on('descync', (daemonHeight, networkHeight, deviance) => {
   // do something
 })
 ```

@@ -18,6 +18,7 @@ const daemonResponses = {
   help: 'Show this help'
 }
 const blockTargetTime = 30
+const globalHeightUrl = 'https://api.turtlenode.io/globalHeight'
 
 const TurtleCoind = function (opts) {
   opts = opts || {}
@@ -45,6 +46,8 @@ const TurtleCoind = function (opts) {
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
+  this.checkHeight = opts.checkHeight || true
+  this.maxDeviance = opts.maxDeviance || 5
 
   // if we find the ~ HOME shortcut in the paths, we need to replace those manually
   this.path = this.path.replace('~', os.homedir())
@@ -148,13 +151,35 @@ TurtleCoind.prototype._checkServices = function () {
     this.checkDaemon = setInterval(() => {
       Promise.all([
         this._checkRpc(),
-        this._checkDaemon()
+        this._checkDaemon(),
+        this._getGlobalHeight()
       ]).then((results) => {
         var info = results[0][0]
         info.globalHashRate = Math.round(info.difficulty / blockTargetTime)
         if (this.trigger) {
           clearTimeout(this.trigger)
           this.trigger = null
+        }
+        if (this.checkHeight) {
+          if (!results[2].error) {
+            var heightDiff = Math.abs(results[2].height - info.height)
+            if (heightDiff > this.maxDeviance) {
+              this.emit('error', util.format('TurtleCoind is out of sync by %s blocks', heightDiff))
+              this.emit('desync', info.height, results[2].height, heightDiff)
+              if (!this.triggerSync) {
+                this.triggerSync = setTimeout(() => {
+                  this.emit('down')
+                }, (this.pollingInterval * 2))
+              }
+            } else {
+              if (this.triggerSync) {
+                clearTimeout(this.triggerSync)
+                this.triggerSync = null
+              }
+            }
+          } else {
+            this.emit('info', 'Could not retrieve Global Blockchain Height')
+          }
         }
         this.emit('ready', info)
       }).catch((err) => {
@@ -232,6 +257,20 @@ TurtleCoind.prototype._getHeight = function () {
       return resolve(data)
     }).catch((err) => {
       return reject(util.format('Could not get /getheight: %s', err))
+    })
+  })
+}
+
+TurtleCoind.prototype._getGlobalHeight = function () {
+  return new Promise((resolve, reject) => {
+    require({
+      uri: globalHeightUrl,
+      json: true
+    }).then((data) => {
+      if (data.avg) return resolve({error: false, height: data.avg})
+      return resolve({error: true, height: null})
+    }).catch(() => {
+      return resolve({error: true, height: null})
     })
   })
 }
