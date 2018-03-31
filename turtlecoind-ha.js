@@ -46,7 +46,7 @@ const TurtleCoind = function (opts) {
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
-  this.checkHeight = opts.checkHeight || true
+  this.checkHeight = opts.checkHeight || false
   this.maxDeviance = opts.maxDeviance || 5
 
   // if we find the ~ HOME shortcut in the paths, we need to replace those manually

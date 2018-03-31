@@ -49,7 +49,7 @@ var daemon = new TurtleCoind({
   dataDir: '~/.TurtleCoin', // Where do you store your blockchain?
   pollingInterval: 2000, // How often to check the daemon in milliseconds
   timeout: 2000, // How long to wait for RPC responses in milliseconds
-  checkHeight: true, // Check the daemon block height against known trusted nodes
+  checkHeight: false, // Check the daemon block height against known trusted nodes
   maxDeviance: 5, // What is the maximum difference between our block height and the height at the trusted nodes we're willing to accept
   testnet: false, // Use the testnet?
   enableCors: false, // Enable CORS support for the domain in this value
