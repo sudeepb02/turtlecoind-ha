@@ -7,7 +7,7 @@ The sample **service.js** includes how to automatically restart the daemon if it
 ## Dependencies
 
 * NodeJS v8.x
-* TurtleCoind (https://github.com/turtlecoin/turtlecoin)
+* TurtleCoind v0.4.3 or higher (https://github.com/turtlecoin/turtlecoin)
 
 ## Easy Start
 
@@ -40,20 +40,22 @@ pm2 save
 
 ### Initialization
 
-Practically all TurtleCoind command line arguments are exposed in the construtor method. Simply include them in your list of options to get activate or use them. Default values are defined below.
-
+Practically all TurtleCoind command line arguments are exposed in the constructor method. Simply include them in your list of options to get activate or use them. Default values are defined below.
 
 ```javascript
 var daemon = new TurtleCoind({
   path: './TurtleCoind', // Where can I find TurtleCoind?
   dataDir: '~/.TurtleCoin', // Where do you store your blockchain?
-  pollingInterval: 2000, // How often to check the daemon in milliseconds
+  pollingInterval: 10000, // How often to check the daemon in milliseconds
+  maxPollingFailures: 3, // How many polling intervals can fail before we emit a down event?
   timeout: 2000, // How long to wait for RPC responses in milliseconds
-  checkHeight: false, // Check the daemon block height against known trusted nodes
-  maxDeviance: 5, // What is the maximum difference between our block height and the height at the trusted nodes we're willing to accept
+  checkHeight: true, // Check the daemon block height against known trusted nodes
+  maxDeviance: 5, // What is the maximum difference between our block height and the network height that we're willing to accept?
+  clearP2pOnStart: false, // Will automatically delete the p2pstate.bin file on start if set to true
   testnet: false, // Use the testnet?
   enableCors: false, // Enable CORS support for the domain in this value
-  enableBlockExplorer: false, // Enable the block explorer
+  enableBlockExplorer: true, // Enable the block explorer
+  loadCheckpoints: false, // If set to a path to a file, will supply that file to the daemon if it exists.
   rpcBindIp: '127.0.0.1', // What IP to bind the RPC server to
   rpcBindPort: 11898, // What Port to bind the RPC server to
   p2pBindIp: '0.0.0.0', // What IP to bind the P2P network to

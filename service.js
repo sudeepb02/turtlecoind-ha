@@ -13,6 +13,9 @@ function log (message) {
 
 daemon.on('start', (args) => {
   log(util.format('TurtleCoind has started... %s', args))
+})
+
+daemon.on('started', () => {
   log('TurtleCoind is attempting to synchronize with the network...')
 })
 

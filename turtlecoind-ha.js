@@ -11,25 +11,21 @@ const os = require('os')
 const shelljs = require('shelljs')
 
 const daemonResponses = {
-  synced: 'SUCCESSFULLY SYNCHRONIZED WITH THE TURTLECOIN NETWORK',
-  altsynced: 'SYNCHRONIZED OK',
-  newsycned: 'Successfully synchronized with the TurtleCoin Network',
-  started: 'Always exit TurtleCoind and Simplewallet with',
+  synced: 'Successfully synchronized with the TurtleCoin Network.',
+  started: 'P2p server initialized OK',
   help: 'Show this help'
 }
 const blockTargetTime = 30
-const globalHeightUrl = 'https://api.turtlenode.io/globalHeight'
 
 const TurtleCoind = function (opts) {
   opts = opts || {}
   if (!(this instanceof TurtleCoind)) return new TurtleCoind(opts)
   this.path = opts.path || path.resolve(__dirname, './TurtleCoind')
-  this.pollingInterval = opts.pollingInterval || 10000
-  this.timeout = opts.timeout || 2000
   this.dataDir = opts.dataDir || path.resolve(os.homedir(), './.TurtleCoin')
   this.testnet = opts.testnet || false
   this.enableCors = opts.enableCors || false
-  this.enableBlockExplorer = opts.enableBlockExplorer || false
+  this.enableBlockExplorer = opts.enableBlockExplorer || true
+  this.loadCheckpoints = opts.loadCheckpoints || false
   this.rpcBindIp = opts.rpcBindIp || '127.0.0.1'
   this.rpcBindPort = opts.rpcBindPort || 11898
   this.p2pBindIp = opts.p2pBindIp || false
@@ -45,13 +41,31 @@ const TurtleCoind = function (opts) {
   this.dbMaxOpenFiles = opts.dbMaxOpenFiles || false
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
-  this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
-  this.checkHeight = opts.checkHeight || false
+
+  // These values control how often we check the daemon and how long we are
+  // willing to wait for responses
+  this.pollingInterval = opts.pollingInterval || 10000
+  this.maxPollingFailures = opts.maxPollingFailures || 3
+  this.timeout = opts.timeout || 2000
+
+  // These values are related to the checking of the daemon once it's in synced
+  // if we detect that the daemon falls out of sync, do we trigger a down event?
+  this.checkHeight = opts.checkHeight || true
   this.maxDeviance = opts.maxDeviance || 5
 
+  // This will automatically clear the P2P state file upon daemon start
+  this.clearP2pOnStart = opts.clearP2pOnStart || false
+
+  // We could query ourselves via 0.0.0.0 but I prefer 127.0.0.1
+  this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
+
   // if we find the ~ HOME shortcut in the paths, we need to replace those manually
+  if (this.loadCheckpoints) {
+    this.loadCheckpoints = this.loadCheckpoints.replace('~', os.homedir())
+  }
   this.path = this.path.replace('~', os.homedir())
   this.dataDir = this.dataDir.replace('~', os.homedir())
+
   // for sanity sake we always resolve our paths
   this.path = path.resolve(this.path)
   this.dataDir = path.resolve(this.dataDir)
@@ -80,6 +94,17 @@ TurtleCoind.prototype.start = function () {
       return false
     }
   }
+  if (this.clearP2pOnStart) {
+    var p2pfile = path.resolve(util.format('%s/p2pstate.bin', this.datDir))
+    if (fs.existsSync(p2pfile)) {
+      try {
+        fs.unlink(p2pfile)
+        this.emit('info', util.format('Deleted the P2P State File at: %s', p2pfile))
+      } catch (e) {
+        this.emit('error', util.format('Could not delete the P2P State File at: %s', p2pfile, e))
+      }
+    }
+  }
   this.sycned = false
 
   var args = this._buildargs()
@@ -93,17 +118,17 @@ TurtleCoind.prototype.start = function () {
 
   this.child.on('error', (error) => {
     this.emit('error', util.format('Error in child process...: %s', error))
+    // When an error is encountered in the child, we need to emit a down event to make sure that we know when to restart.
+    this.emit('down')
   })
   this.child.on('data', (data) => {
-    this.emit('data', data.trim())
+    data = data.trim()
+    this._checkChildStdio(data)
+    this.emit('data', data)
   })
   this.child.on('close', (exitcode) => {
     this.emit('stopped', exitcode)
   })
-
-  // Attach to our own events so that we know when we can start our checking processes
-  this.on('data', this._checkChildStdio)
-  this.on('synced', this._checkServices)
 
   this.emit('start', util.format('%s%s', this.path, args.join(' ')))
 }
@@ -115,10 +140,6 @@ TurtleCoind.prototype.stop = function () {
     this.checkDaemon = null
   }
   this.synced = false
-
-  // We detach ourselves from our own event emitters here so that we don't accidentally stack on top of ourselves when we start back up
-  this.removeListener('synced', this._checkServices)
-  this.removeListener('data', this._checkChildStdio)
 
   // Let's try to exit cleanly and if not, kill the process
   if (this.child) this.write('exit')
@@ -132,16 +153,29 @@ TurtleCoind.prototype.write = function (data) {
 }
 
 TurtleCoind.prototype._checkChildStdio = function (data) {
-  if (data.indexOf(daemonResponses.synced) !== -1) {
-    this.emit('synced')
-  } else if (data.indexOf(daemonResponses.altsynced) !== -1) {
-    this.emit('synced')
-  } else if (data.indexOf(daemonResponses.newsycned) !== -1) {
+  if (data.indexOf(daemonResponses.synced) !== -1 && !this.synced) {
+    this._checkServices()
+    this.synced = true
     this.emit('synced')
   } else if (data.indexOf(daemonResponses.started) !== -1) {
     this.emit('started')
   } else if (data.indexOf(daemonResponses.help) !== -1) {
     this.help = true
+  }
+}
+
+TurtleCoind.prototype._triggerDown = function () {
+  if (!this.trigger) {
+    this.trigger = setTimeout(() => {
+      this.emit('down')
+    }, (this.pollingInterval * this.maxPollingFailures))
+  }
+}
+
+TurtleCoind.prototype._triggerUp = function () {
+  if (this.trigger) {
+    clearTimeout(this.trigger)
+    this.trigger = null
   }
 }
 
@@ -151,44 +185,26 @@ TurtleCoind.prototype._checkServices = function () {
     this.checkDaemon = setInterval(() => {
       Promise.all([
         this._checkRpc(),
-        this._checkDaemon(),
-        this._getGlobalHeight()
+        this._checkDaemon()
       ]).then((results) => {
         var info = results[0][0]
         info.globalHashRate = Math.round(info.difficulty / blockTargetTime)
-        if (this.trigger) {
-          clearTimeout(this.trigger)
-          this.trigger = null
-        }
         if (this.checkHeight) {
-          if (!results[2].error) {
-            var heightDiff = Math.abs(results[2].height - info.height)
-            if (heightDiff > this.maxDeviance) {
-              this.emit('error', util.format('TurtleCoind is out of sync by %s blocks', heightDiff))
-              this.emit('desync', info.height, results[2].height, heightDiff)
-              if (!this.triggerSync) {
-                this.triggerSync = setTimeout(() => {
-                  this.emit('down')
-                }, (this.pollingInterval * 2))
-              }
-            } else {
-              if (this.triggerSync) {
-                clearTimeout(this.triggerSync)
-                this.triggerSync = null
-              }
-            }
+          var rpcHeight = results[0][1]
+          var deviance = Math.abs(rpcHeight.network_height - rpcHeight.height)
+          if (deviance > this.maxDeviance) {
+            this._triggerDown()
           } else {
-            this.emit('info', 'Could not retrieve Global Blockchain Height')
+            this._triggerUp()
+            this.emit('ready', info)
           }
+        } else {
+          this._triggerUp()
+          this.emit('ready', info)
         }
-        this.emit('ready', info)
       }).catch((err) => {
         this.emit('error', err)
-        if (!this.trigger) {
-          this.trigger = setTimeout(() => {
-            this.emit('down')
-          }, (this.pollingInterval * 2))
-        }
+        this._triggerDown()
       })
     }, this.pollingInterval)
   }
@@ -261,20 +277,6 @@ TurtleCoind.prototype._getHeight = function () {
   })
 }
 
-TurtleCoind.prototype._getGlobalHeight = function () {
-  return new Promise((resolve, reject) => {
-    request({
-      uri: globalHeightUrl,
-      json: true
-    }).then((data) => {
-      if (data.avg) return resolve({error: false, height: data.avg})
-      return resolve({error: true, height: null})
-    }).catch(() => {
-      return resolve({error: true, height: null})
-    })
-  })
-}
-
 TurtleCoind.prototype._getTransactions = function () {
   return new Promise((resolve, reject) => {
     this._queryRpc('gettransactions').then((data) => {
@@ -291,6 +293,11 @@ TurtleCoind.prototype._buildargs = function () {
   if (this.testnet) args = util.format('%s --testnet', args)
   if (this.enableCors) args = util.format('%s --enable-cors %s', args, this.enableCors)
   if (this.enableBlockExplorer) args = util.format('%s --enable_blockexplorer', args)
+  if (this.loadCheckpoints) {
+    if (fs.existsSync(path.resolve(this.loadCheckpoints))) {
+      args = util.format('%s --load-checkpoints %s', args, path.resolve(this.loadCheckpoints))
+    }
+  }
   if (this.rpcBindIp) args = util.format('%s --rpc-bind-ip %s', args, this.rpcBindIp)
   if (this.rpcBindPort) args = util.format('%s --rpc-bind-port %s', args, this.rpcBindPort)
   if (this.p2pBindIp) args = util.format('%s --p2p-bind-ip %s', args, this.p2pBindIp)
