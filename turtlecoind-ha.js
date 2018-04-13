@@ -193,6 +193,7 @@ TurtleCoind.prototype._checkServices = function () {
           var rpcHeight = results[0][1]
           var deviance = Math.abs(rpcHeight.network_height - rpcHeight.height)
           if (deviance > this.maxDeviance) {
+            this.emit('error', util.format('TurtleCoind is currently off the blockchain by %s blocks...', deviance))
             this._triggerDown()
           } else {
             this._triggerUp()
