@@ -122,6 +122,16 @@ daemon.on('start', (args) => {
 })
 ```
 
+#### Event - *started*
+
+This event is emitted when the daemon is now accepting P2P connections.
+
+```javascript
+daemon.on('started', () => {
+  // do something
+})
+```
+
 #### Event - *synced*
 
 This event is emitted when the daemon has synchronized with the TurtleCoin network.
@@ -132,7 +142,7 @@ daemon.on('synced', () => {
 })
 ```
 
-### Event - *desync*
+#### Event - *desync*
 
 This event is emitted when the daemon has lost synchronization with the TurtleCoin network
 

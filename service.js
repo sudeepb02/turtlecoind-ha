@@ -27,6 +27,10 @@ daemon.on('ready', (info) => {
   log(util.format('TurtleCoind is waiting for connections at %s @ %s - %s H/s', info.height, info.difficulty, info.globalHashRate))
 })
 
+daemon.on('desync', (daemon, network, deviance) => {
+  log(util.format('TurtleCoind is currently off the blockchain by %s blocks. Network: %s  Daemon: %s', deviance, network, daemon))
+})
+
 daemon.on('down', () => {
   log('TurtleCoind is not responding... stopping process...')
   daemon.stop()
