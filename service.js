@@ -36,8 +36,8 @@ daemon.on('down', () => {
   daemon.stop()
 })
 
-daemon.on('stopped', () => {
-  log('TurtleCoind has closed... restarting process...')
+daemon.on('stopped', (exitcode) => {
+  log(util.format('TurtleCoind has closed (exitcode: %s)... restarting process...', exitcode))
   daemon.start()
 })
 

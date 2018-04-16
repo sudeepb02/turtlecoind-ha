@@ -26,7 +26,7 @@ const TurtleCoind = function (opts) {
   this.enableCors = opts.enableCors || false
   this.enableBlockExplorer = opts.enableBlockExplorer || true
   this.loadCheckpoints = opts.loadCheckpoints || false
-  this.rpcBindIp = opts.rpcBindIp || '127.0.0.1'
+  this.rpcBindIp = opts.rpcBindIp || '0.0.0.0'
   this.rpcBindPort = opts.rpcBindPort || 11898
   this.p2pBindIp = opts.p2pBindIp || false
   this.p2pBindPort = opts.p2pBindPort || false
@@ -54,7 +54,10 @@ const TurtleCoind = function (opts) {
   this.maxDeviance = opts.maxDeviance || 5
 
   // This will automatically clear the P2P state file upon daemon start
-  this.clearP2pOnStart = opts.clearP2pOnStart || false
+  this.clearP2pOnStart = opts.clearP2pOnStart || true
+
+  // This will automatically clear the DB LOCK file if we find it
+  this.clearDBLockFile = opts.clearDBLockFile || true
 
   // We could query ourselves via 0.0.0.0 but I prefer 127.0.0.1
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
@@ -73,6 +76,31 @@ const TurtleCoind = function (opts) {
 inherits(TurtleCoind, EventEmitter)
 
 TurtleCoind.prototype.start = function () {
+  var databaseLockfile = path.resolve(util.format('%s/DB/LOCK', this.dataDir))
+  if (fs.existsSync(databaseLockfile)) {
+    this.emit('error', 'Database LOCK file exists...')
+    if (this.clearDBLockFile) {
+      try {
+        fs.unlinkSync(databaseLockfile)
+        this.emit('info', util.format('Deleted the DB LOCK File at: %s', databaseLockfile))
+        setTimeout(() => {
+          this.start()
+        }, 5000)
+        return false
+      } catch (e) {
+        this.emit('error', util.format('Could not delete the DB LOCK File at: %s', databaseLockfile, e))
+        setTimeout(() => {
+          this.start()
+        }, 5000)
+        return false
+      }
+    } else {
+      setTimeout(() => {
+        this.start()
+      }, 5000)
+      return false
+    }
+  }
   this.emit('info', 'Attempting to start turtlecoind-ha...')
   if (!fs.existsSync(this.path)) {
     this.emit('error', '************************************************')
@@ -98,7 +126,7 @@ TurtleCoind.prototype.start = function () {
     var p2pfile = path.resolve(util.format('%s/p2pstate.bin', this.datDir))
     if (fs.existsSync(p2pfile)) {
       try {
-        fs.unlink(p2pfile)
+        fs.unlinkSync(p2pfile)
         this.emit('info', util.format('Deleted the P2P State File at: %s', p2pfile))
       } catch (e) {
         this.emit('error', util.format('Could not delete the P2P State File at: %s', p2pfile, e))
@@ -127,7 +155,10 @@ TurtleCoind.prototype.start = function () {
     this.emit('data', data)
   })
   this.child.on('close', (exitcode) => {
-    this.emit('stopped', exitcode)
+    // as crazy as this sounds, we need to pause a moment before bubbling up the stopped event
+    setTimeout(() => {
+      this.emit('stopped', exitcode)
+    }, 2000)
   })
 
   this.emit('start', util.format('%s%s', this.path, args.join(' ')))
@@ -154,9 +185,13 @@ TurtleCoind.prototype.write = function (data) {
 
 TurtleCoind.prototype._checkChildStdio = function (data) {
   if (data.indexOf(daemonResponses.synced) !== -1 && !this.synced) {
-    this._checkServices()
-    this.synced = true
-    this.emit('synced')
+    this._getHeight().then((height) => {
+      if (height.network_height === height.height) {
+        this._checkServices()
+        this.synced = true
+        this.emit('synced')
+      }
+    })
   } else if (data.indexOf(daemonResponses.started) !== -1) {
     this.emit('started')
   } else if (data.indexOf(daemonResponses.help) !== -1) {
