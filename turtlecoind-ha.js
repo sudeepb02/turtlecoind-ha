@@ -191,6 +191,8 @@ TurtleCoind.prototype._checkChildStdio = function (data) {
         this.synced = true
         this.emit('synced')
       }
+    }).catch((err) => {
+      this.emit('error', err)
     })
   } else if (data.indexOf(daemonResponses.started) !== -1) {
     this.emit('started')
