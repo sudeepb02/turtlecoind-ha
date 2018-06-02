@@ -10,6 +10,7 @@
   "license": "GPL",
   "dependencies": {
     "node-pty": "^0.7.4",
+    "nonce": "^1.0.4",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "sha256": "^0.2.0",
