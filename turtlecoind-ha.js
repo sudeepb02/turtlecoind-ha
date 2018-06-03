@@ -10,6 +10,7 @@ const fs = require('fs')
 const path = require('path')
 const os = require('os')
 const shelljs = require('shelljs')
+const nonce = require('nonce')()
 
 const daemonResponses = {
   started: 'P2p server initialized OK',
@@ -389,6 +390,7 @@ TurtleCoind.prototype._setupWebSocket = function () {
 
     this.webSocket.on('connection', (socket) => {
       this.emit('info', util.format('[WEBSOCKET] Client connected with socketId: %s', socket.id))
+      this._registerWebSocketClientEvents(socket)
     })
 
     this.webSocket.on('disconnect', (socket) => {
@@ -474,6 +476,34 @@ TurtleCoind.prototype._setupWebSocket = function () {
     this.on('block', (block) => {
       this.webSocket.broadcast({event: 'block', data: block})
     })
+  }
+}
+
+TurtleCoind.prototype._registerWebSocketClientEvents = function (socket) {
+  var that = this
+  var events = Object.getPrototypeOf(this.api)
+  events = Object.getOwnPropertyNames(events).filter((f) => {
+    return (f !== 'constructor' && !f.startsWith('_'))
+  })
+  socket.setMaxListeners(socket.getMaxListeners() + events.length)
+
+  for (var i = 0; i < events.length; i++) {
+    (function () {
+      var evt = events[i]
+      socket.on(evt, (data) => {
+        try {
+          data = JSON.parse(data)
+        } catch (e) {
+          data = {}
+        }
+        data.nonce = data.nonce || nonce()
+        that.api[evt](data).then((result) => {
+          socket.emit(evt, {nonce: data.nonce, data: result})
+        }).catch((err) => {
+          socket.emit(evt, {nonce: data.nonce, error: err.toString()})
+        })
+      })
+    })()
   }
 }
 
