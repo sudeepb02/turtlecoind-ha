@@ -1,6 +1,6 @@
 'use strict'
 
-const TurtleCoindRPC = require('./lib/turtlecoind-rpc.js')
+const TurtleCoindRPC = require('turtlecoin-rpc').TurtleCoind
 const WebSocket = require('./lib/websocket.js')
 const pty = require('node-pty')
 const util = require('util')
