@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/brandonlehmann/turtlecoind-ha.git"
   },
-  "keywords":[
+  "keywords": [
     "TurtleCoin",
     "wrapper",
     "high-availability",
@@ -26,7 +26,7 @@
     "sha256": "^0.2.0",
     "shelljs": "^0.8.1",
     "socket.io": "^2.1.1",
-    "turtlecoin-rpc": "^0.5.3"
+    "turtlecoin-rpc": "^0.5.5"
   },
   "devDependencies": {
     "standard": "^11.0.1"
