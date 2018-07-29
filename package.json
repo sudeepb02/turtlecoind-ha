@@ -19,7 +19,7 @@
     "websocket"
   ],
   "author": "Brandon Lehmann <brandonlehmann@gmail.com>",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "node-pty": "^0.7.4",
     "nonce": "^1.0.4",
