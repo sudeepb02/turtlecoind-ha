@@ -1,6 +1,6 @@
 {
   "name": "turtlecoind-ha",
-  "version": "0.5.3",
+  "version": "0.7.0",
   "description": "Wraps the Turtlecoind Daemon and helps keep the daemon synchronized and ready for connections.",
   "main": "turtlecoind-ha.js",
   "scripts": {
@@ -19,14 +19,14 @@
     "websocket"
   ],
   "author": "Brandon Lehmann <brandonlehmann@gmail.com>",
-  "license": "AGPL-3.0-only",
+  "license": "AGPL-3.0",
   "dependencies": {
     "node-pty": "^0.7.4",
     "nonce": "^1.0.4",
     "sha256": "^0.2.0",
     "shelljs": "^0.8.1",
     "socket.io": "^2.1.1",
-    "turtlecoin-rpc": "^0.5.5"
+    "turtlecoin-rpc": "^0.7.0"
   },
   "devDependencies": {
     "standard": "^11.0.1"

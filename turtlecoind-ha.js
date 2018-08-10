@@ -1,5 +1,5 @@
 // Copyright (c) 2018, Brandon Lehmann, The TurtleCoin Developers
-// 
+//
 // Please see the included LICENSE file for more information.
 
 'use strict'
@@ -59,6 +59,8 @@ const TurtleCoind = function (opts) {
   this.dbMaxOpenFiles = opts.dbMaxOpenFiles || false
   this.dbWriteBufferSize = opts.dbWriteBufferSize || false
   this.dbReadCacheSize = opts.dbReadCacheSize || false
+  this.feeAddress = opts.feeAddress || false
+  this.feeAmount = opts.feeAmount || 0
 
   // starting sanity checks
   this._rpcQueryIp = (this.rpcBindIp === '0.0.0.0') ? '127.0.0.1' : this.rpcBindIp
@@ -374,6 +376,8 @@ TurtleCoind.prototype._buildargs = function () {
   if (this.dbMaxOpenFiles) args = util.format('%s --db-max-open-files %s', args, this.dbMaxOpenFiles)
   if (this.dbWriteBufferSize) args = util.format('%s --db-write-buffer-size %s', args, this.dbWriteBufferSize)
   if (this.dbReadCacheSize) args = util.format('%s --db-read-cache-size %s', args, this.dbReadCacheSize)
+  if (this.feeAddress) args = util.format('%s --fee-address %s', args, this.feeAddress)
+  if (this.feeAmount !== 0) args = util.format('%s --fee-amount %s', args, this.feeAmount)
   return args.split(' ')
 }
 
