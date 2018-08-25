@@ -27,6 +27,11 @@ const TurtleCoind = function (opts) {
   opts = opts || {}
   if (!(this instanceof TurtleCoind)) return new TurtleCoind(opts)
 
+  /*
+    This is NOT where you set your options at. If you're changing
+    values here, you're doing it wrong. These are the default values
+    used if you don't specify them when you create the object.
+  */
   this.pollingInterval = opts.pollingInterval || 10000
   this.maxPollingFailures = opts.maxPollingFailures || 3
   this.checkHeight = opts.checkHeight || true
