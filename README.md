@@ -914,6 +914,8 @@ All responses except for ***auth*** return data in the same format.
 
 Copyright (c) 2018, Brandon Lehmann, The TurtleCoin Developers
 
-Please see the included LICENSE file for more information.
+## License
 
-You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+Copyright (c) 2018, Brandon Lehmann, The TurtleCoin Developers
+
+Please see the included LICENSE file for more information.
