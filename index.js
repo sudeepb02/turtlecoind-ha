@@ -43,7 +43,7 @@ const TurtleCoind = function (opts) {
   this.webSocketPassword = opts.webSocketPassword || false
 
   // Begin TurtleCoind options
-  this.path = opts.path || path.resolve(__dirname, './TurtleCoind' + ((os.platform() === 'win32') ? '.exe' : null))
+  this.path = opts.path || path.resolve(__dirname, './TurtleCoind' + ((os.platform() === 'win32') ? '.exe' : ''))
   this.dataDir = opts.dataDir || path.resolve(os.homedir(), './.TurtleCoin')
   this.testnet = opts.testnet || false
   this.enableCors = opts.enableCors || false
