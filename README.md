@@ -1,3 +1,7 @@
+[![NPM](https://nodei.co/npm/turtlecoind-ha.png?downloads=true&stars=true)](https://nodei.co/npm/turtlecoind-ha/)
+
+[![Build Status](https://travis-ci.org/brandonlehmann/turtlecoind-ha.png?branch=master)](https://travis-ci.org/brandonlehmann/turtlecoind-ha)
+
 # TurtleCoind High-Availability Daemon Wrapper
 
 This project is designed to wrap the TurtleCoind daemon on a *nix system and monitor it for hangups, locks, fork, or other events that cause the daemon to stop responding to requests in an accurate manner.
