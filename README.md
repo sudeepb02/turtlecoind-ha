@@ -34,7 +34,7 @@ N/A
 You *must* copy ```TurtleCoind``` into the ```turtlecoind-ha``` folder for the easy start process to occur.
 
 ```bash
-git clone https://github.com/brandonlehmann/turtlecoind-ha.git
+git clone https://github.com/turtlecoin/turtlecoind-ha.git
 cd turtlecoind-ha
 cp <TurtleCoind> .
 npm i & node service.js
@@ -74,7 +74,7 @@ var daemon = new TurtleCoind({
   timeout: 2000, // How long to wait for RPC responses in milliseconds
   enableWebSocket: true, // Enables a socket.io websocket server on the rpcBindPort + 1
   webSocketPassword: false, // Set this to a password to use for the privileged socket events.
-  
+
   // These are the standard TurtleCoind options
   path: './TurtleCoind', // Where can I find TurtleCoind?
   dataDir: '~/.TurtleCoin', // Where do you store your blockchain?
@@ -837,7 +837,7 @@ A WebSocket [socket.io](https://socket.io/) server is initialized if ```enableWe
 
 Some events require that the socket is authenticated via a ```auth``` event.
 
-If the **nonce** column is *Yes* you may send a *nonce* in the payload in addition to the options defined. 
+If the **nonce** column is *Yes* you may send a *nonce* in the payload in addition to the options defined.
 
 ### Client Initiated Events
 
