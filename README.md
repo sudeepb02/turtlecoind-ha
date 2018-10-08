@@ -34,7 +34,7 @@ N/A
 You *must* copy ```TurtleCoind``` into the ```turtlecoind-ha``` folder for the easy start process to occur.
 
 ```bash
-git clone https://github.com/brandonlehmann/turtlecoind-ha.git
+git clone https://github.com/turtlecoin/turtlecoind-ha.git
 cd turtlecoind-ha
 cp <TurtleCoind> .
 npm i & node service.js
